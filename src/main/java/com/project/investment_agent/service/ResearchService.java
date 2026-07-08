@@ -16,15 +16,12 @@ public class ResearchService {
 
     public ResearchResponse analyzeCompany(ResearchRequest request) {
 
-    System.out.println("Calling Gemini...");
+        System.out.println("Calling Gemini...");
 
-    String response = geminiService.askGemini(request.getCompany());
+        ResearchResponse response = geminiService.askGemini(request.getCompany());
 
-    System.out.println("Gemini finished.");
+        System.out.println("Gemini finished.");
 
-    return new ResearchResponse(
-            request.getCompany(),
-            response
-    );
-}
+        return response;
+    }
 }

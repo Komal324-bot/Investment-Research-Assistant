@@ -1,68 +1,340 @@
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+body{
+    background:#eef3f8;
+    font-family:Arial, Helvetica, sans-serif;
+    color:#1e293b;
 }
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+.container{
+    max-width:1300px;
+    margin:40px auto;
+    padding:0 25px;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* ===========================
+   TITLE
+=========================== */
+
+h1{
+    text-align:center;
+    font-size:42px;
+    color:#1e293b;
+    margin-bottom:10px;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+.subtitle{
+    text-align:center;
+    color:#64748b;
+    font-size:18px;
+    margin-bottom:35px;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+/* ===========================
+   SEARCH
+=========================== */
+
+.search-box{
+    display:flex;
+    gap:15px;
+    margin-bottom:35px;
+}
+
+.search-box input{
+    flex:1;
+    height:58px;
+    padding:0 18px;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    font-size:17px;
+    outline:none;
+    transition:.3s;
+    background:#fff;
+}
+
+.search-box input:focus{
+    border-color:#2563eb;
+    box-shadow:0 0 0 4px rgba(37,99,235,.15);
+}
+
+.search-box button{
+    width:180px;
+    height:58px;
+    border:none;
+    border-radius:10px;
+    background:#2563eb;
+    color:white;
+    font-size:17px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.search-box button:hover{
+    background:#1d4ed8;
+}
+
+.search-box button:disabled{
+    background:#94a3b8;
+    cursor:not-allowed;
+}
+
+/* ===========================
+   ANALYSIS CARD
+=========================== */
+
+.analysis-card{
+    background:white;
+    border-radius:16px;
+    padding:35px;
+    box-shadow:0 12px 30px rgba(0,0,0,.08);
+}
+
+/* ===========================
+   OVERVIEW
+=========================== */
+
+.section{
+    margin-bottom:35px;
+}
+
+.section h2{
+    margin-bottom:18px;
+    font-size:30px;
+    color:#0f172a;
+}
+
+.section p{
+    color:#475569;
+    line-height:1.8;
+    font-size:16px;
+}
+.recommendation-badge{
+    display:inline-block;
+    padding:12px 35px;
+    border-radius:40px;
+    color:#fff;
+    font-size:28px;
+    font-weight:bold;
+    margin:15px 0;
+}
+/* ===========================
+   GRID
+=========================== */
+
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:25px;
+}
+
+/* ===========================
+   PROS / CONS CARDS
+=========================== */
+
+.card{
+    background:#f8fafc;
+    border:1px solid #dbe4ef;
+    border-radius:12px;
+    padding:25px;
+    transition:.3s;
+}
+
+.card:hover{
+    transform:translateY(-5px);
+    box-shadow:0 12px 25px rgba(0,0,0,.08);
+}
+
+.card h2{
+    margin-bottom:20px;
+    color:#0f172a;
+}
+
+.card ul{
+    padding-left:20px;
+}
+
+.card li{
+    margin-bottom:18px;
+    line-height:1.7;
+    color:#334155;
+}
+
+/* ===========================
+   RECOMMENDATION
+=========================== */
+
+.recommendation{
+    margin-top:40px;
+    text-align:center;
+}
+
+.recommendation h2{
+    margin-bottom:20px;
+}
+
+.recommendation div{
+    display:inline-block;
+    font-size:32px;
+    font-weight:bold;
+    padding:12px 35px;
+    border-radius:50px;
+    margin-bottom:20px;
+}
+
+.recommendation p{
+    max-width:900px;
+    margin:auto;
+    line-height:1.8;
+    color:#475569;
+}
+
+/* ===========================
+   LOADER
+=========================== */
+
+.loader{
+    width:55px;
+    height:55px;
+    border:6px solid #dbeafe;
+    border-top:6px solid #2563eb;
+    border-radius:50%;
+    margin:40px auto;
+    animation:spin .8s linear infinite;
+}
+
+@keyframes spin{
+    from{
+        transform:rotate(0deg);
+    }
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+/* ===========================
+   ERROR
+=========================== */
+
+.error{
+    background:#fee2e2;
+    color:#b91c1c;
+    padding:14px;
+    border-radius:8px;
+    margin-bottom:25px;
+    text-align:center;
+    font-weight:600;
+}
+
+/* ===========================
+   SCROLLBAR
+=========================== */
+
+::-webkit-scrollbar{
+    width:10px;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#cbd5e1;
+    border-radius:20px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+    background:#94a3b8;
+}
+.info-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:15px;
+    margin:25px 0;
+}
+
+.info-box{
+    background:#f8fafc;
+    border-radius:10px;
+    padding:15px;
+    text-align:center;
+    border:1px solid #dbe4ef;
+}
+
+.info-box h4{
+    margin:0 0 8px;
+    color:#64748b;
+    font-size:14px;
+}
+
+.info-box p{
+    margin:0;
+    font-weight:bold;
+    color:#1e293b;
+}
+
+.competitors{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+}
+
+.chip{
+    background:#2563eb;
+    color:white;
+    padding:8px 16px;
+    border-radius:30px;
+    font-size:14px;
+}
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+
+@media(max-width:900px){
+
+.grid{
+    grid-template-columns:1fr;
+}
+
+}
+
+@media(max-width:768px){
+
+.container{
+    padding:20px;
+}
+
+h1{
+    font-size:34px;
+}
+
+.subtitle{
+    font-size:16px;
+}
+
+.search-box{
+    flex-direction:column;
+}
+
+.search-box button{
+    width:100%;
+}
+
+.analysis-card{
+    padding:25px;
+}
+
+.section h2{
+    font-size:24px;
+}
+
+.card{
+    padding:20px;
+}
+
+.recommendation div{
+    font-size:26px;
+}
+
 }

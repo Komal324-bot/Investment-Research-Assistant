@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.investment_agent.dto.ResearchResponse;
 
 @Service
 public class GeminiService {
@@ -22,31 +23,47 @@ public class GeminiService {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public String askGemini(String company) {
+    public ResearchResponse askGemini(String company) {
 
         try {
 
             String prompt = """
-                    Analyze the company %s as an investment.
+                    You are a professional investment research analyst.
 
-                    Give:
+                    Analyze the company %s.
 
-                    1. Company Overview
+                    Return ONLY valid JSON.
 
-                    2. Pros
+                    {
+                      "companyOverview":"",
+                      "sector":"",
+                      "marketCap":"",
+                      "pros":[],
+                      "cons":[],
+                      "recommendation":"",
+                      "reason":"",
+                      "riskLevel":"",
+                      "growthPotential":"",
+                      "competitors":[]
+                    }
 
-                    3. Cons
-
-                    4. Recommendation (BUY / HOLD / SELL)
+                    Rules:
+                    - Return ONLY JSON.
+                    - No markdown.
+                    - No ```json.
+                    - recommendation must be BUY, HOLD or SELL.
+                    - Give exactly 5 pros.
+                    - Give exactly 5 cons.
+                    - Give exactly 5 competitors.
                     """.formatted(company);
 
             String body = mapper.writeValueAsString(
                     java.util.Map.of(
                             "contents",
-                            new Object[] {
+                            new Object[]{
                                     java.util.Map.of(
                                             "parts",
-                                            new Object[] {
+                                            new Object[]{
                                                     java.util.Map.of("text", prompt)
                                             })
                             }));
@@ -68,29 +85,34 @@ public class GeminiService {
             HttpResponse<String> response =
                     client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            System.out.println(response.body());
-
             if (response.statusCode() != 200) {
-                return response.body();
+                throw new RuntimeException(response.body());
             }
 
             JsonNode root = mapper.readTree(response.body());
 
-            return root.get("candidates")
+            String json = root.get("candidates")
                     .get(0)
                     .get("content")
                     .get("parts")
                     .get(0)
                     .get("text")
                     .asText();
+System.out.println("========== GEMINI JSON ==========");
+System.out.println(json);
+System.out.println("=================================");
+            // Convert Gemini JSON into Java object
+            ResearchResponse researchResponse =
+                    mapper.readValue(json, ResearchResponse.class);
+
+            // Set company name
+            researchResponse.setCompany(company);
+
+            return researchResponse;
 
         } catch (Exception e) {
-
             e.printStackTrace();
-
-            return "ERROR : " + e.getMessage();
+            throw new RuntimeException("Gemini API Error: " + e.getMessage(), e);
         }
-
     }
-
 }

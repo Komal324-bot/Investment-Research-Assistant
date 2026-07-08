@@ -1,0 +1,12 @@
+import axios from "axios";
+
+const API = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080",
+  timeout: 60000,
+});
+
+export const analyzeCompany = (company) => {
+  return API.post("/api/research", {
+    company: company.trim(),
+  });
+};

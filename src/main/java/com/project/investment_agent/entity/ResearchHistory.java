@@ -29,6 +29,9 @@ public class ResearchHistory {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "pinned")
+    private Boolean pinned = false;
+
     // Getters and Setters
     public Long getId() {
         return id;
@@ -68,5 +71,13 @@ public class ResearchHistory {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Boolean getPinned() {
+        return pinned;
+    }
+
+    public void setPinned(Boolean pinned) {
+        this.pinned = pinned;
     }
 }

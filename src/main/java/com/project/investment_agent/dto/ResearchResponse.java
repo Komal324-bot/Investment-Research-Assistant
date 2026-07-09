@@ -28,6 +28,70 @@ public class ResearchResponse {
 
     private List<String> competitors;
 
+    // Investment score (0-100 overall conviction score from Gemini)
+    private Integer investmentScore;
+
+    // SWOT — strengths/weaknesses reuse pros/cons above, these fill out the quadrant
+    private List<String> opportunities;
+
+    private List<String> threats;
+
+    // Price target & upside
+    private Double priceTarget;
+
+    private Double upsidePercent;
+
+    // Structured competitor comparison data
+    private List<CompetitorDTO> competitorDetails;
+
+    public Integer getInvestmentScore() {
+        return investmentScore;
+    }
+
+    public void setInvestmentScore(Integer investmentScore) {
+        this.investmentScore = investmentScore;
+    }
+
+    public List<String> getOpportunities() {
+        return opportunities;
+    }
+
+    public void setOpportunities(List<String> opportunities) {
+        this.opportunities = opportunities;
+    }
+
+    public List<String> getThreats() {
+        return threats;
+    }
+
+    public void setThreats(List<String> threats) {
+        this.threats = threats;
+    }
+
+    public Double getPriceTarget() {
+        return priceTarget;
+    }
+
+    public void setPriceTarget(Double priceTarget) {
+        this.priceTarget = priceTarget;
+    }
+
+    public Double getUpsidePercent() {
+        return upsidePercent;
+    }
+
+    public void setUpsidePercent(Double upsidePercent) {
+        this.upsidePercent = upsidePercent;
+    }
+
+    public List<CompetitorDTO> getCompetitorDetails() {
+        return competitorDetails;
+    }
+
+    public void setCompetitorDetails(List<CompetitorDTO> competitorDetails) {
+        this.competitorDetails = competitorDetails;
+    }
+
     public StockDataDTO getStockData() {
         return stockData;
     }

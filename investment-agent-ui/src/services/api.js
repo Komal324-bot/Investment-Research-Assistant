@@ -32,4 +32,16 @@ export const analyzeCompany = (company, includeLiveData = true) => {
   });
 };
 
+export const getChart = (company, interval = '1day', outputsize = '30') => {
+  return API.get('/api/chart', {
+    params: { company: company.trim(), interval, outputsize },
+  });
+};
+
+export const getNews = (company) => {
+  return API.get('/api/news', {
+    params: { company: company.trim() },
+  });
+};
+
 export default API;

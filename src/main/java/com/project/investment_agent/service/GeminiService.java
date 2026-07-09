@@ -122,6 +122,13 @@ public class GeminiService {
 
         if (stockData != null) {
             researchResponse.setStockData(stockData);
+
+            if (researchResponse.getPriceTarget() != null
+                    && stockData.getCurrentPrice() > 0) {
+                double upside = ((researchResponse.getPriceTarget() - stockData.getCurrentPrice())
+                        / stockData.getCurrentPrice()) * 100.0;
+                researchResponse.setUpsidePercent(Math.round(upside * 100.0) / 100.0);
+            }
         }
 
         researchResponse.setTimestamp(
@@ -166,20 +173,37 @@ public class GeminiService {
         prompt.append("  \"peRatio\":\"\",\n");
         prompt.append("  \"pros\":[],\n");
         prompt.append("  \"cons\":[],\n");
+        prompt.append("  \"opportunities\":[],\n");
+        prompt.append("  \"threats\":[],\n");
         prompt.append("  \"recommendation\":\"\",\n");
         prompt.append("  \"reason\":\"\",\n");
         prompt.append("  \"riskLevel\":\"\",\n");
         prompt.append("  \"growthPotential\":\"\",\n");
-        prompt.append("  \"competitors\":[]\n");
+        prompt.append("  \"investmentScore\":0,\n");
+        prompt.append("  \"priceTarget\":0,\n");
+        prompt.append("  \"competitors\":[],\n");
+        prompt.append("  \"competitorDetails\":[\n");
+        prompt.append("    {\"name\":\"\",\"ticker\":\"\",\"marketCap\":\"\",\"peRatio\":\"\",\"recommendation\":\"\"}\n");
+        prompt.append("  ]\n");
         prompt.append("}\n\n");
         prompt.append("Rules:\n");
         prompt.append("- Return ONLY JSON.\n");
         prompt.append("- No markdown.\n");
         prompt.append("- No ```json.\n");
         prompt.append("- recommendation must be BUY, HOLD or SELL.\n");
-        prompt.append("- Give exactly 5 pros.\n");
-        prompt.append("- Give exactly 5 cons.\n");
-        prompt.append("- Give exactly 5 competitors.\n");
+        prompt.append("- Give exactly 5 pros (these represent SWOT 'Strengths').\n");
+        prompt.append("- Give exactly 5 cons (these represent SWOT 'Weaknesses').\n");
+        prompt.append("- Give exactly 3 opportunities (SWOT 'Opportunities').\n");
+        prompt.append("- Give exactly 3 threats (SWOT 'Threats').\n");
+        prompt.append("- investmentScore is an integer from 0-100 reflecting overall investment ")
+              .append("attractiveness (0=avoid, 100=exceptional buy), consistent with your recommendation.\n");
+        prompt.append("- priceTarget is your estimated 12-month target price as a plain number ")
+              .append("(no currency symbol), in the same currency as the current price.\n");
+        prompt.append("- Give exactly 5 competitors as plain company names in \"competitors\", ")
+              .append("and the SAME 5 companies with structured detail in \"competitorDetails\".\n");
+        prompt.append("- In competitorDetails, \"ticker\" is the stock ticker symbol, ")
+              .append("\"marketCap\" and \"peRatio\" are your best current estimates as plain strings ")
+              .append("(e.g. \"$2.1T\", \"28.4\"), and \"recommendation\" is your own BUY/HOLD/SELL view on that competitor.\n");
         prompt.append("- Use the live market data to inform your analysis.\n");
 
         return prompt.toString();

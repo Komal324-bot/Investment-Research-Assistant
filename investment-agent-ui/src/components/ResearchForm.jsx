@@ -10,19 +10,15 @@ import {
   Typography,
   Paper,
   Grid,
-  Card,
-  CardContent,
   Chip,
   List,
   ListItem,
-  ListItemIcon,
   ListItemText,
   IconButton,
   Tooltip,
   Switch,
   FormControlLabel,
   Drawer,
-  AppBar,
   Toolbar,
   Alert,
   Snackbar,
@@ -30,6 +26,8 @@ import {
   Divider,
   Avatar,
   Stack,
+  Skeleton,
+  Badge,
 } from "@mui/material";
 import {
   History,
@@ -41,23 +39,29 @@ import {
   TrendingUp,
   TrendingDown,
   TrendingFlat,
-  CheckCircleRounded,
-  CancelRounded,
+  Star,
+  StarBorder,
+  InfoOutlined,
+  Bolt,
 } from "@mui/icons-material";
 import { analyzeCompany } from "../services/api";
 import {
   getHistory,
   clearHistory,
   deleteHistoryItem,
+  togglePin,
 } from "../services/history";
-import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
+import { generateAnalysisPdf } from "../utils/generatePdfReport";
+import { formatPrice, formatMarketCap, recommendationTone } from "../utils/format";
+import PriceChart from "./PriceChart";
+import NewsFeed from "./NewsFeed";
+import InvestmentScoreCard from "./InvestmentScoreCard";
+import PriceTargetCard from "./PriceTargetCard";
+import RiskGauge from "./RiskGauge";
+import SwotGrid from "./SwotGrid";
+import CompetitorTable from "./CompetitorTable";
+import Watchlist from "./Watchlist";
 
-// ---------------------------------------------------------------------------
-// Design tokens — an "equity research desk" palette: ink + paper + one
-// deliberate accent (emerald), with monospace reserved for figures only so
-// prices read like a real quote terminal rather than generic UI text.
-// ---------------------------------------------------------------------------
 const FONT_STACK = '"Inter", "Helvetica Neue", Arial, sans-serif';
 const MONO_STACK = '"IBM Plex Mono", "Roboto Mono", ui-monospace, monospace';
 
@@ -100,11 +104,6 @@ function buildTheme(darkMode) {
   });
 }
 
-// ---------------------------------------------------------------------------
-// Small presentational helpers
-// ---------------------------------------------------------------------------
-
-/** One entry in the dense quote strip — label on top, monospace value below. */
 function QuoteStat({ label, value, valueColor }) {
   return (
     <Box sx={{ minWidth: 96, px: 2, py: 1 }}>
@@ -137,6 +136,7 @@ export default function ResearchForm({ darkMode, setDarkMode }) {
   const [error, setError] = useState("");
   const [history, setHistory] = useState([]);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [watchlistOpen, setWatchlistOpen] = useState(false);
   const [includeLiveData, setIncludeLiveData] = useState(true);
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -145,6 +145,7 @@ export default function ResearchForm({ darkMode, setDarkMode }) {
   });
 
   const theme = useMemo(() => buildTheme(darkMode), [darkMode]);
+  const watchlistItems = useMemo(() => history.filter((item) => item.pinned), [history]);
 
   useEffect(() => {
     loadHistory();
@@ -185,57 +186,30 @@ export default function ResearchForm({ darkMode, setDarkMode }) {
     }
   };
 
-  const exportPDF = async () => {
-    const element = document.getElementById("analysis-content");
-    if (!element) return;
+  const handleTogglePin = async (id, pinned) => {
+    setHistory((prev) => prev.map((item) => (item.id === id ? { ...item, pinned } : item)));
+    try {
+      await togglePin(id, pinned);
+    } catch (err) {
+      console.error(err);
+      setSnackbar({ open: true, message: "Couldn't update watchlist", severity: "error" });
+      loadHistory(); 
+    }
+  };
 
-    const canvas = await html2canvas(element);
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
-    const imgWidth = 210;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-    pdf.save(`${response.company}-analysis.pdf`);
+  const exportPDF = () => {
+    if (!response) return;
+    try {
+      generateAnalysisPdf(response);
+    } catch (err) {
+      console.error(err);
+      setSnackbar({ open: true, message: "Couldn't generate PDF", severity: "error" });
+    }
   };
 
   const copyAnalysis = async () => {
     await navigator.clipboard.writeText(JSON.stringify(response, null, 2));
     setSnackbar({ open: true, message: "Copied to clipboard", severity: "success" });
-  };
-
-  const recommendationTone = (value) => {
-    switch ((value || "").toUpperCase()) {
-      case "BUY":
-        return "success";
-      case "SELL":
-        return "error";
-      default:
-        return "warning";
-    }
-  };
-
-  const riskTone = (risk) => {
-    switch ((risk || "").toLowerCase()) {
-      case "low":
-        return "success";
-      case "medium":
-        return "warning";
-      default:
-        return "error";
-    }
-  };
-
-  const formatPrice = (price) => (price == null ? "N/A" : `$${Number(price).toFixed(2)}`);
-
-  const formatMarketCap = (marketCap) => {
-    if (!marketCap) return null;
-    const value = Number(marketCap);
-    if (Number.isNaN(value)) return null;
-    if (value >= 1_000_000_000_000) return `$${(value / 1_000_000_000_000).toFixed(2)}T`;
-    if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(2)}B`;
-    if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(2)}M`;
-    return `$${value.toLocaleString()}`;
   };
 
   const changePercent = response?.stockData?.changePercent;
@@ -254,7 +228,7 @@ export default function ResearchForm({ darkMode, setDarkMode }) {
         `}
       />
       <Box sx={{ bgcolor: "background.default", minHeight: "100%", py: 4 }}>
-        <Container maxWidth="lg">
+        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3 } }}>
           {/* ---------------------------------------------------------- Masthead */}
           <Box sx={{ borderBottom: "1px solid", borderColor: "divider", pb: 2, mb: 4 }}>
             <Toolbar disableGutters>
@@ -288,6 +262,13 @@ export default function ResearchForm({ darkMode, setDarkMode }) {
                 </Box>
               </Stack>
 
+              <Tooltip title="Watchlist">
+                <IconButton onClick={() => setWatchlistOpen(true)}>
+                  <Badge badgeContent={watchlistItems.length} color="primary">
+                    <Star />
+                  </Badge>
+                </IconButton>
+              </Tooltip>
               <Tooltip title="Search history">
                 <IconButton onClick={() => setHistoryOpen(true)}>
                   <History />
@@ -300,6 +281,19 @@ export default function ResearchForm({ darkMode, setDarkMode }) {
               </Tooltip>
             </Toolbar>
           </Box>
+
+          {/* ---------------------------------------------------------- Watchlist drawer */}
+          <Watchlist
+            open={watchlistOpen}
+            onClose={() => setWatchlistOpen(false)}
+            items={watchlistItems}
+            theme={theme}
+            onUnpin={(id) => handleTogglePin(id, false)}
+            onSelect={(name) => {
+              setCompany(name);
+              setWatchlistOpen(false);
+            }}
+          />
 
           {/* ---------------------------------------------------------- History drawer */}
           <Drawer anchor="right" open={historyOpen} onClose={() => setHistoryOpen(false)}>
@@ -342,22 +336,40 @@ export default function ResearchForm({ darkMode, setDarkMode }) {
                         setHistoryOpen(false);
                       }}
                       secondaryAction={
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            await deleteHistoryItem(item.id);
-                            loadHistory();
-                          }}
-                        >
-                          <Close fontSize="small" />
-                        </IconButton>
+                        <Stack direction="row" spacing={0.5}>
+                          <Tooltip title={item.pinned ? "Remove from watchlist" : "Add to watchlist"}>
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleTogglePin(item.id, !item.pinned);
+                              }}
+                            >
+                              {item.pinned ? (
+                                <Star fontSize="small" sx={{ color: "warning.main" }} />
+                              ) : (
+                                <StarBorder fontSize="small" />
+                              )}
+                            </IconButton>
+                          </Tooltip>
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              await deleteHistoryItem(item.id);
+                              loadHistory();
+                            }}
+                          >
+                            <Close fontSize="small" />
+                          </IconButton>
+                        </Stack>
                       }
                     >
                       <ListItemText
                         primary={item.companyName}
                         secondary={new Date(item.createdAt).toLocaleString()}
+                        sx={{ pr: 8 }}
                       />
                     </ListItem>
                   ))}
@@ -397,15 +409,27 @@ export default function ResearchForm({ darkMode, setDarkMode }) {
               </Grid>
 
               <Grid size={{ xs: 12, sm: 5, md: 3 }}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={includeLiveData}
-                      onChange={(e) => setIncludeLiveData(e.target.checked)}
-                    />
-                  }
-                  label="Live market data"
-                />
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={includeLiveData}
+                        onChange={(e) => setIncludeLiveData(e.target.checked)}
+                      />
+                    }
+                    label="Live market data"
+                    sx={{ mr: 0.25 }}
+                  />
+                  <Tooltip
+                    title={
+                      includeLiveData
+                        ? "Pulls real-time price, volume, and 52-week range into the analysis."
+                        : "Live data is off — the AI will estimate figures from its own knowledge, which is faster but less current and precise."
+                    }
+                  >
+                    <InfoOutlined sx={{ fontSize: 17, color: "text.secondary", cursor: "pointer" }} />
+                  </Tooltip>
+                </Stack>
               </Grid>
             </Grid>
           </Paper>
@@ -418,15 +442,57 @@ export default function ResearchForm({ darkMode, setDarkMode }) {
 
           {/* ---------------------------------------------------------- Loading */}
           {loading && (
-            <Paper variant="outlined" sx={{ p: 6, textAlign: "center" }}>
-              <CircularProgress size={44} thickness={4} />
-              <Typography variant="h6" sx={{ mt: 3 }}>
-                Analyzing {company}
-              </Typography>
-              <Typography color="text.secondary" variant="body2">
-                Pulling live market data and generating investment insights
-              </Typography>
-            </Paper>
+            <Box>
+              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
+                <CircularProgress size={18} thickness={5} />
+                <Typography variant="body2" color="text.secondary">
+                  Analyzing {company} — pulling market data and generating insights…
+                </Typography>
+              </Stack>
+
+              {/* Ticker header skeleton */}
+              <Paper variant="outlined" sx={{ p: { xs: 2.5, sm: 3 }, mb: 3 }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Skeleton variant="rounded" width={56} height={56} />
+                    <Box>
+                      <Skeleton variant="text" width={160} height={28} />
+                      <Skeleton variant="text" width={100} height={18} />
+                    </Box>
+                  </Stack>
+                  <Skeleton variant="text" width={100} height={36} />
+                </Stack>
+                <Divider sx={{ my: 2 }} />
+                <Stack direction="row" spacing={4}>
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <Box key={i}>
+                      <Skeleton variant="text" width={50} height={14} />
+                      <Skeleton variant="text" width={60} height={20} />
+                    </Box>
+                  ))}
+                </Stack>
+              </Paper>
+
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12, lg: 8 }}>
+                  <Stack spacing={3}>
+                    <Skeleton variant="rounded" height={300} />
+                    <Skeleton variant="rounded" height={110} />
+                    <Skeleton variant="rounded" height={130} />
+                    <Skeleton variant="rounded" height={220} />
+                    <Skeleton variant="rounded" height={180} />
+                  </Stack>
+                </Grid>
+                <Grid size={{ xs: 12, lg: 4 }}>
+                  <Stack spacing={3}>
+                    <Skeleton variant="rounded" height={170} />
+                    <Skeleton variant="rounded" height={150} />
+                    <Skeleton variant="rounded" height={190} />
+                    <Skeleton variant="rounded" height={240} />
+                  </Stack>
+                </Grid>
+              </Grid>
+            </Box>
           )}
 
           {/* ---------------------------------------------------------- Results */}
@@ -459,7 +525,21 @@ export default function ResearchForm({ darkMode, setDarkMode }) {
                       {(response.company || "?").charAt(0).toUpperCase()}
                     </Avatar>
                     <Box>
-                      <Typography variant="h5">{response.company}</Typography>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Typography variant="h5">{response.company}</Typography>
+                        {!response.stockData && (
+                          <Tooltip title="This analysis was generated without live market data — figures are the AI's own estimates.">
+                            <Chip
+                              icon={<Bolt sx={{ fontSize: "14px !important" }} />}
+                              label="Estimated"
+                              size="small"
+                              variant="outlined"
+                              color="warning"
+                              sx={{ height: 22, fontSize: 11 }}
+                            />
+                          </Tooltip>
+                        )}
+                      </Stack>
                       <Typography color="text.secondary" variant="body2">
                         {[response.stockData?.symbol, response.stockData?.exchange]
                           .filter(Boolean)
@@ -520,105 +600,107 @@ export default function ResearchForm({ darkMode, setDarkMode }) {
                 </Stack>
               </Paper>
 
-              {/* Overview */}
-              <Paper variant="outlined" sx={{ p: 3, mb: 3 }}>
-                <Typography variant="overline" color="text.secondary">
-                  Company Overview
-                </Typography>
-                <Typography sx={{ mt: 1, lineHeight: 1.75 }}>{response.companyOverview}</Typography>
-              </Paper>
+              {/* Main dashboard grid — wide content on the left, compact stats
+                  rail on the right, so the page grows across instead of only
+                  downward. */}
+              <Grid container spacing={3}>
+                {/* ---------------------------------------------- Main column */}
+                <Grid size={{ xs: 12, lg: 8 }}>
+                  <Stack spacing={3}>
+                    <PriceChart company={response.company} accentColor={theme.palette.primary.main} />
 
-              {/* Recommendation — verdict card with left rule */}
-              <Paper
-                variant="outlined"
-                sx={{
-                  p: 3,
-                  mb: 3,
-                  borderLeft: "4px solid",
-                  borderLeftColor: `${recommendationTone(response.recommendation)}.main`,
-                }}
-              >
-                <Typography variant="overline" color="text.secondary">
-                  Recommendation
-                </Typography>
-                <Stack direction="row" alignItems="center" spacing={2} sx={{ mt: 1, mb: 1.5 }}>
-                  <Chip
-                    label={response.recommendation}
-                    color={recommendationTone(response.recommendation)}
-                    sx={{ fontSize: 14, letterSpacing: "0.04em", height: 30, px: 1 }}
-                  />
-                </Stack>
-                <Typography sx={{ lineHeight: 1.75 }}>{response.reason}</Typography>
-              </Paper>
+                    <Paper variant="outlined" sx={{ p: 3 }}>
+                      <Typography variant="overline" color="text.secondary">
+                        Company Overview
+                      </Typography>
+                      <Typography sx={{ mt: 1, lineHeight: 1.75 }}>
+                        {response.companyOverview}
+                      </Typography>
+                    </Paper>
 
-              {/* Risk & growth */}
-              <Grid container spacing={2} sx={{ mb: 3 }}>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Paper variant="outlined" sx={{ p: 3, height: "100%" }}>
-                    <Typography variant="overline" color="text.secondary">
-                      Risk Level
-                    </Typography>
-                    <Box sx={{ mt: 1 }}>
-                      <Chip
-                        label={response.riskLevel}
-                        color={riskTone(response.riskLevel)}
-                        variant="outlined"
-                        sx={{ fontWeight: 700 }}
-                      />
-                    </Box>
-                  </Paper>
+                    {/* Recommendation — verdict card with left rule */}
+                    <Paper
+                      variant="outlined"
+                      sx={{
+                        p: 3,
+                        borderLeft: "4px solid",
+                        borderLeftColor: `${recommendationTone(response.recommendation)}.main`,
+                      }}
+                    >
+                      <Typography variant="overline" color="text.secondary">
+                        Recommendation
+                      </Typography>
+                      <Stack direction="row" alignItems="center" spacing={2} sx={{ mt: 1, mb: 1.5 }}>
+                        <Chip
+                          label={response.recommendation}
+                          color={recommendationTone(response.recommendation)}
+                          sx={{ fontSize: 14, letterSpacing: "0.04em", height: 30, px: 1 }}
+                        />
+                      </Stack>
+                      <Typography sx={{ lineHeight: 1.75 }}>{response.reason}</Typography>
+                    </Paper>
+
+                    <Paper variant="outlined" sx={{ p: 3 }}>
+                      <Typography variant="overline" color="text.secondary">
+                        Growth Potential
+                      </Typography>
+                      <Typography sx={{ mt: 1, lineHeight: 1.75 }}>
+                        {response.growthPotential}
+                      </Typography>
+                    </Paper>
+
+                    <SwotGrid
+                      strengths={response.pros}
+                      weaknesses={response.cons}
+                      opportunities={response.opportunities}
+                      threats={response.threats}
+                      theme={theme}
+                    />
+
+                    <CompetitorTable
+                      company={response.company}
+                      competitorDetails={response.competitorDetails}
+                      competitors={response.competitors}
+                    />
+                  </Stack>
                 </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Paper variant="outlined" sx={{ p: 3, height: "100%" }}>
-                    <Typography variant="overline" color="text.secondary">
-                      Growth Potential
-                    </Typography>
-                    <Typography sx={{ mt: 1 }}>{response.growthPotential}</Typography>
-                  </Paper>
+
+                {/* ---------------------------------------------- Sidebar rail */}
+                <Grid size={{ xs: 12, lg: 4 }}>
+                  <Stack spacing={3}>
+                    <InvestmentScoreCard score={response.investmentScore} theme={theme} />
+                    <PriceTargetCard
+                      currentPrice={response.stockData?.currentPrice}
+                      priceTarget={response.priceTarget}
+                      upsidePercent={response.upsidePercent}
+                      theme={theme}
+                    />
+                    <RiskGauge riskLevel={response.riskLevel} theme={theme} />
+                    <NewsFeed company={response.company} />
+                  </Stack>
                 </Grid>
               </Grid>
-
-              {/* Pros & Cons */}
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Paper variant="outlined" sx={{ p: 3, height: "100%" }}>
-                    <Typography variant="overline" color="success.main">
-                      Strengths
-                    </Typography>
-                    <Divider sx={{ my: 1.5 }} />
-                    <List dense disablePadding>
-                      {response.pros?.map((item, index) => (
-                        <ListItem key={index} disableGutters>
-                          <ListItemIcon sx={{ minWidth: 30 }}>
-                            <CheckCircleRounded color="success" fontSize="small" />
-                          </ListItemIcon>
-                          <ListItemText primary={item} />
-                        </ListItem>
-                      ))}
-                    </List>
-                  </Paper>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Paper variant="outlined" sx={{ p: 3, height: "100%" }}>
-                    <Typography variant="overline" color="error.main">
-                      Risks
-                    </Typography>
-                    <Divider sx={{ my: 1.5 }} />
-                    <List dense disablePadding>
-                      {response.cons?.map((item, index) => (
-                        <ListItem key={index} disableGutters>
-                          <ListItemIcon sx={{ minWidth: 30 }}>
-                            <CancelRounded color="error" fontSize="small" />
-                          </ListItemIcon>
-                          <ListItemText primary={item} />
-                        </ListItem>
-                      ))}
-                    </List>
-                  </Paper>
-                </Grid>
-              </Grid>
-            </Box>
+            </Box>   
           )}
+          <Divider sx={{ mt: 6, mb: 3 }} />
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 1,
+              color: "text.secondary",
+            }}
+          >
+            <Typography variant="body2">
+              Investment Research Assistant v1.0
+            </Typography>
+
+            <Typography variant="body2">
+              Developed by <strong>Komal</strong> • Spring Boot • React • Gemini AI
+            </Typography>
+          </Box>
         </Container>
       </Box>
 

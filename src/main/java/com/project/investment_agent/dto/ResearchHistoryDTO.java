@@ -15,4 +15,5 @@ public class ResearchHistoryDTO {
     private String query;
     private String aiResponse;
     private LocalDateTime createdAt;
+    private Boolean pinned;
 }

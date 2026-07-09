@@ -1,7 +1,8 @@
+import React, { useState } from "react";
 import ResearchForm from "./components/ResearchForm";
 
-function App() {
-    return <ResearchForm />;
-}
+export default function App() {
+  const [darkMode, setDarkMode] = useState(false);
 
-export default App;
+  return <ResearchForm darkMode={darkMode} setDarkMode={setDarkMode} />;
+}

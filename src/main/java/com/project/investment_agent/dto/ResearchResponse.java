@@ -24,7 +24,36 @@ public class ResearchResponse {
 
     private String growthPotential;
 
+    private String peRatio;
+
     private List<String> competitors;
+
+    public StockDataDTO getStockData() {
+        return stockData;
+    }
+
+    public void setStockData(StockDataDTO stockData) {
+        this.stockData = stockData;
+    }
+
+    public String getPeRatio() {
+        return peRatio;
+    }
+
+    public void setPeRatio(String peRatio) {
+        this.peRatio = peRatio;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    private StockDataDTO stockData;
+    private String timestamp;
 
     public ResearchResponse() {
     }

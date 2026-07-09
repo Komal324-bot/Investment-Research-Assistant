@@ -5,4 +5,5 @@ import lombok.Data;
 @Data
 public class ResearchRequest {
     private String company;
+    private boolean includeLiveData = true; // New field
 }

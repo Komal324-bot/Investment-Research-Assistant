@@ -207,6 +207,16 @@ npm run dev
 - Market Data Panel
 
 ---
+# 🔌 External APIs Used
+
+| API | Purpose |
+|------|---------|
+| **Google Gemini API (Gemini 2.5 Flash)** | AI-powered investment research, SWOT analysis, recommendations, and structured JSON responses. |
+| **Finnhub API** | Retrieves real-time stock market data, company information, and financial metrics. |
+| **Twelve Data API** | Backup (fallback) provider for live stock prices and market data when the primary source is unavailable. |
+| **NewsAPI** | Fetches the latest financial and company-related news articles used in investment research. |
+
+---
 
 # 📈 Supported Market
 
@@ -216,21 +226,6 @@ Currently Supported
 - 🇺🇸 NASDAQ
 - 🇮🇳 NSE
 - 🇮🇳 BSE
-
----
-
-# 🚀 Future Enhancements
-
-- Portfolio Management
-- Stock News Integration
-- PDF Report Export
-- Email Reports
-- Technical Indicators
-- Company Financial Statements
-- Stock Charts
-- Watchlist Notifications
-- Multi-user Roles
-- Docker Deployment
 
 ---
 
@@ -249,10 +244,6 @@ Frontend
 - React
 - Material UI
 - Vite
-
-AI
-- Google Gemini API
-
 ---
 
 # 📄 License

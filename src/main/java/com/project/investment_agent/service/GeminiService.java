@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -19,6 +20,7 @@ import com.project.investment_agent.dto.ResearchResponse;
 import com.project.investment_agent.dto.StockDataDTO;
 import com.project.investment_agent.entity.ResearchHistory;
 import com.project.investment_agent.repository.ResearchHistoryRepository;
+import org.springframework.security.core.Authentication;
 
 @Service
 public class GeminiService {
@@ -117,6 +119,12 @@ public class GeminiService {
 
         ResearchResponse researchResponse =
                 mapper.readValue(json, ResearchResponse.class);
+                Authentication authentication =
+        SecurityContextHolder.getContext().getAuthentication();
+
+        String username = authentication.getName();
+
+        System.out.println("Saving history for : " + username);
 
         researchResponse.setCompany(company);
 
@@ -138,6 +146,7 @@ public class GeminiService {
         ResearchHistory history = new ResearchHistory();
         history.setCompanyName(company);
         history.setQuery("Investment analysis for " + company);
+        history.setUsername(username);
         history.setAiResponse(json);
         history.setCreatedAt(LocalDateTime.now());
 

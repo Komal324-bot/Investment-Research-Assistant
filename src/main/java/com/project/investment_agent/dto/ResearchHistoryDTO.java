@@ -1,7 +1,6 @@
 package com.project.investment_agent.dto;
 
 import java.time.LocalDateTime;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,4 +15,5 @@ public class ResearchHistoryDTO {
     private String aiResponse;
     private LocalDateTime createdAt;
     private Boolean pinned;
+    private String username;
 }

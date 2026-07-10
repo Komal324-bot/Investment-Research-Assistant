@@ -32,6 +32,17 @@ public class ResearchHistory {
     @Column(name = "pinned")
     private Boolean pinned = false;
 
+    @Column(name = "username", nullable = false)
+    private String username;
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
     // Getters and Setters
     public Long getId() {
         return id;

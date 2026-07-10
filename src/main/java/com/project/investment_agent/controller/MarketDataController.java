@@ -8,7 +8,7 @@ import com.project.investment_agent.service.MarketDataService;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:5173")
+
 public class MarketDataController {
 
     private final MarketDataService marketDataService;

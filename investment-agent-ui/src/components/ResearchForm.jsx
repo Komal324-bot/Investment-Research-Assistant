@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
   ThemeProvider,
-  createTheme,
   GlobalStyles,
   Container,
   Box,
@@ -43,6 +42,8 @@ import {
   StarBorder,
   InfoOutlined,
   Bolt,
+  Logout,
+  AccountCircle,
 } from "@mui/icons-material";
 import { analyzeCompany } from "../services/api";
 import {
@@ -61,48 +62,8 @@ import RiskGauge from "./RiskGauge";
 import SwotGrid from "./SwotGrid";
 import CompetitorTable from "./CompetitorTable";
 import Watchlist from "./Watchlist";
-
-const FONT_STACK = '"Inter", "Helvetica Neue", Arial, sans-serif';
-const MONO_STACK = '"IBM Plex Mono", "Roboto Mono", ui-monospace, monospace';
-
-function buildTheme(darkMode) {
-  return createTheme({
-    palette: {
-      mode: darkMode ? "dark" : "light",
-      background: {
-        default: darkMode ? "#0B1220" : "#F5F6F8",
-        paper: darkMode ? "#121A2B" : "#FFFFFF",
-      },
-      text: {
-        primary: darkMode ? "#E7ECF3" : "#0B1220",
-        secondary: darkMode ? "#93A0B4" : "#5B6472",
-      },
-      divider: darkMode ? "#233047" : "#E3E7ED",
-      primary: { main: darkMode ? "#22B27D" : "#0F6F5C" },
-      success: { main: darkMode ? "#22B27D" : "#0F6F5C" },
-      error: { main: darkMode ? "#E5675F" : "#B3261E" },
-      warning: { main: darkMode ? "#E0AC4E" : "#B7791F" },
-    },
-    shape: { borderRadius: 10 },
-    typography: {
-      fontFamily: FONT_STACK,
-      h4: { fontWeight: 700, letterSpacing: "-0.02em" },
-      h5: { fontWeight: 700, letterSpacing: "-0.01em" },
-      h6: { fontWeight: 700 },
-      overline: { fontWeight: 700, letterSpacing: "0.08em" },
-    },
-    components: {
-      MuiPaper: { styleOverrides: { root: { backgroundImage: "none" } } },
-      MuiButton: {
-        styleOverrides: {
-          root: { textTransform: "none", fontWeight: 600, borderRadius: 8 },
-        },
-      },
-      MuiChip: { styleOverrides: { root: { fontWeight: 700 } } },
-      MuiOutlinedInput: { styleOverrides: { root: { borderRadius: 8 } } },
-    },
-  });
-}
+import { buildTheme, FONT_STACK, MONO_STACK } from "../theme";
+import { useAuth } from "../context/AuthContext";
 
 function QuoteStat({ label, value, valueColor }) {
   return (
@@ -130,6 +91,7 @@ function QuoteStat({ label, value, valueColor }) {
 }
 
 export default function ResearchForm({ darkMode, setDarkMode }) {
+  const { username, logout } = useAuth();
   const [company, setCompany] = useState("");
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -230,57 +192,72 @@ export default function ResearchForm({ darkMode, setDarkMode }) {
       <Box sx={{ bgcolor: "background.default", minHeight: "100%", py: 4 }}>
         <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3 } }}>
           {/* ---------------------------------------------------------- Masthead */}
-          <Box sx={{ borderBottom: "1px solid", borderColor: "divider", pb: 2, mb: 4 }}>
-            <Toolbar disableGutters>
-              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flexGrow: 1 }}>
-                <Box
-                  sx={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: "8px",
-                    bgcolor: "text.primary",
-                    color: "background.paper",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontFamily: MONO_STACK,
-                    fontWeight: 700,
-                    fontSize: 15,
-                  }}
-                >
-                  IR
-                </Box>
-                <Box>
-                  <Typography
-                    variant="overline"
-                    color="text.secondary"
-                    sx={{ display: "block", lineHeight: 1 }}
-                  >
-                    Equity Research
-                  </Typography>
-                  <Typography variant="h5">Investment Research Assistant</Typography>
-                </Box>
-              </Stack>
+<Box sx={{ borderBottom: "1px solid", borderColor: "divider", pb: 2, mb: 4 }}>
+  <Toolbar disableGutters>
+    <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flexGrow: 1 }}>
+      <Box
+        sx={{
+          width: 38,
+          height: 38,
+          borderRadius: "8px",
+          bgcolor: "text.primary",
+          color: "background.paper",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontFamily: MONO_STACK,
+          fontWeight: 700,
+          fontSize: 15,
+        }}
+      >
+        IR
+      </Box>
+      <Box>
+        <Typography
+          variant="overline"
+          color="text.secondary"
+          sx={{ display: "block", lineHeight: 1 }}
+        >
+          Equity Research
+        </Typography>
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <Typography variant="h5">Investment Research Assistant</Typography>
+          
+        </Stack>
+      </Box>
+    </Stack>
 
-              <Tooltip title="Watchlist">
-                <IconButton onClick={() => setWatchlistOpen(true)}>
-                  <Badge badgeContent={watchlistItems.length} color="primary">
-                    <Star />
-                  </Badge>
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Search history">
-                <IconButton onClick={() => setHistoryOpen(true)}>
-                  <History />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title={darkMode ? "Light mode" : "Dark mode"}>
-                <IconButton onClick={() => setDarkMode(!darkMode)}>
-                  {darkMode ? <LightMode /> : <DarkMode />}
-                </IconButton>
-              </Tooltip>
-            </Toolbar>
-          </Box>
+    <Tooltip title="Watchlist">
+      <IconButton onClick={() => setWatchlistOpen(true)}>
+        <Badge badgeContent={watchlistItems.length} color="primary">
+          <Star />
+        </Badge>
+      </IconButton>
+    </Tooltip>
+    <Tooltip title="Search history">
+      <IconButton onClick={() => setHistoryOpen(true)}>
+        <History />
+      </IconButton>
+    </Tooltip>
+    <Tooltip title={darkMode ? "Light mode" : "Dark mode"}>
+      <IconButton onClick={() => setDarkMode(!darkMode)}>
+        {darkMode ? <LightMode /> : <DarkMode />}
+      </IconButton>
+    </Tooltip>
+    <Divider orientation="vertical" flexItem sx={{ mx: 1, my: 1 }} />
+    <Chip
+      icon={<AccountCircle />}
+      label={username || "Account"}
+      variant="outlined"
+      sx={{ fontFamily: MONO_STACK, mr: 1 }}
+    />
+    <Tooltip title="Log out">
+      <IconButton onClick={logout}>
+        <Logout />
+      </IconButton>
+    </Tooltip>
+  </Toolbar>
+</Box>
 
           {/* ---------------------------------------------------------- Watchlist drawer */}
           <Watchlist
@@ -568,12 +545,16 @@ export default function ResearchForm({ darkMode, setDarkMode }) {
                       />
                     )}
                     <Stack direction="row" spacing={0.5} alignItems="center">
-                      <IconButton size="small" onClick={copyAnalysis}>
-                        <ContentCopy fontSize="small" />
-                      </IconButton>
-                      <IconButton size="small" onClick={exportPDF}>
-                        <GetApp fontSize="small" />
-                      </IconButton>
+                      <Tooltip title="Copy analysis as JSON">
+                        <IconButton size="small" onClick={copyAnalysis}>
+                          <ContentCopy fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Download PDF">
+                        <IconButton size="small" onClick={exportPDF}>
+                          <GetApp fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
                     </Stack>
                   </Stack>
                 </Stack>
@@ -600,9 +581,7 @@ export default function ResearchForm({ darkMode, setDarkMode }) {
                 </Stack>
               </Paper>
 
-              {/* Main dashboard grid — wide content on the left, compact stats
-                  rail on the right, so the page grows across instead of only
-                  downward. */}
+    
               <Grid container spacing={3}>
                 {/* ---------------------------------------------- Main column */}
                 <Grid size={{ xs: 12, lg: 8 }}>
@@ -698,7 +677,7 @@ export default function ResearchForm({ darkMode, setDarkMode }) {
             </Typography>
 
             <Typography variant="body2">
-              Developed by <strong>Komal</strong> • Spring Boot • React • Gemini AI
+              Developed by <strong>Komal</strong> 
             </Typography>
           </Box>
         </Container>

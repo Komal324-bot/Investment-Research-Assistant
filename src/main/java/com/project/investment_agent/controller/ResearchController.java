@@ -8,7 +8,7 @@ import com.project.investment_agent.service.ResearchService;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:5173")
+
 public class ResearchController {
 
     private final ResearchService researchService;
@@ -17,9 +17,9 @@ public class ResearchController {
         this.researchService = researchService;
     }
 
-   @PostMapping("/research")
-   public ResearchResponse analyze(@RequestBody ResearchRequest request) {
+    @PostMapping("/research")
+    public ResearchResponse analyze(@RequestBody ResearchRequest request) {
 
-    return researchService.analyzeCompany(request);
-}
+        return researchService.analyzeCompany(request);
+    }
 }

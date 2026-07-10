@@ -4,7 +4,8 @@ import org.springframework.stereotype.Service;
 
 import com.project.investment_agent.dto.ResearchRequest;
 import com.project.investment_agent.dto.ResearchResponse;
-
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 @Service
 public class ResearchService {
 
@@ -15,6 +16,12 @@ public class ResearchService {
     }
 
     public ResearchResponse analyzeCompany(ResearchRequest request) {
+        Authentication authentication =
+        SecurityContextHolder.getContext().getAuthentication();
+
+        String username = authentication.getName();
+
+        System.out.println("Logged in User : " + username);
         System.out.println("Calling Gemini for: " + request.getCompany());
         System.out.println("Include live data: " + request.isIncludeLiveData());
         

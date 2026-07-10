@@ -2,6 +2,7 @@ package com.project.investment_agent.controller;
 
 import com.project.investment_agent.dto.ResearchHistoryDTO;
 import com.project.investment_agent.entity.ResearchHistory;
+import com.project.investment_agent.exception.ResourceNotFoundException;
 import com.project.investment_agent.repository.ResearchHistoryRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,10 +10,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @RestController
 @RequestMapping("/api/history")
-@CrossOrigin(origins = "http://localhost:5173")
+
 public class HistoryController {
 
     private final ResearchHistoryRepository historyRepository;
@@ -23,7 +26,10 @@ public class HistoryController {
 
     @GetMapping
     public ResponseEntity<List<ResearchHistoryDTO>> getHistory() {
-        List<ResearchHistory> history = historyRepository.findAll();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        List<ResearchHistory> history = historyRepository.findByUsernameOrderByCreatedAtDesc(username);
         List<ResearchHistoryDTO> dtos = history.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -32,7 +38,10 @@ public class HistoryController {
 
     @GetMapping("/recent")
     public ResponseEntity<List<ResearchHistoryDTO>> getRecentHistory() {
-        List<ResearchHistory> history = historyRepository.findAll();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        List<ResearchHistory> history = historyRepository.findByUsernameOrderByCreatedAtDesc(username);
         // Get last 10 entries
         List<ResearchHistoryDTO> dtos = history.stream()
                 .limit(10)
@@ -43,7 +52,10 @@ public class HistoryController {
 
     @GetMapping("/watchlist")
     public ResponseEntity<List<ResearchHistoryDTO>> getWatchlist() {
-        List<ResearchHistory> pinned = historyRepository.findByPinnedTrue();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        List<ResearchHistory> pinned = historyRepository.findByUsernameAndPinnedTrue(username);
         List<ResearchHistoryDTO> dtos = pinned.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -54,8 +66,10 @@ public class HistoryController {
     public ResponseEntity<ResearchHistoryDTO> setPinned(
             @PathVariable Long id, @RequestBody Map<String, Boolean> body) {
         boolean pinned = body.getOrDefault("pinned", true);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
 
-        return historyRepository.findById(id)
+        return historyRepository.findByIdAndUsername(id, username)
                 .map(history -> {
                     history.setPinned(pinned);
                     historyRepository.save(history);
@@ -66,13 +80,24 @@ public class HistoryController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteHistory(@PathVariable Long id) {
-        historyRepository.deleteById(id);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        ResearchHistory history = historyRepository
+                .findByIdAndUsername(id, username)
+                .orElseThrow(() -> new ResourceNotFoundException("History not found."));
+
+        historyRepository.delete(history);
+
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/clear")
     public ResponseEntity<Void> clearHistory() {
-        historyRepository.deleteAll();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        historyRepository.deleteByUsername(username);
         return ResponseEntity.ok().build();
     }
 
@@ -84,6 +109,7 @@ public class HistoryController {
         dto.setAiResponse(history.getAiResponse());
         dto.setCreatedAt(history.getCreatedAt());
         dto.setPinned(Boolean.TRUE.equals(history.getPinned()));
+        dto.setUsername(history.getUsername());
         return dto;
     }
 }

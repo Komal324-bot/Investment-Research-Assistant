@@ -229,6 +229,21 @@ Currently Supported
 
 ---
 
+# 🚀 Future Enhancements
+
+- Portfolio Management
+- Stock News Integration
+- PDF Report Export
+- Email Reports
+- Technical Indicators
+- Company Financial Statements
+- Stock Charts
+- Watchlist Notifications
+- Multi-user Roles
+- Docker Deployment
+
+---
+
 # 👨‍💻 Developed By
 
 **Komal**
@@ -244,6 +259,10 @@ Frontend
 - React
 - Material UI
 - Vite
+
+AI
+- Google Gemini API
+
 ---
 
 # 📄 License
